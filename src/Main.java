@@ -90,13 +90,34 @@ public class Main {
         }
     }
 
-    public void validarCodigo(String ruta, int codigo) {
+    public boolean esValidoElCodigo(String ruta, int codigo) {
+        ArrayList<Integer> listaCodigos = obtenerListaCodigos(ruta);
+
+        for (int i = 0; i < listaCodigos.size(); i++) {
+            if (listaCodigos.get(i) == codigo) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public void anadirUsuario(String ruta) {
-        IO.println("Introduce el codigo del nuevo usuario (" + "Codigo sugerido: " + "U" + obtenerCodigoSugerido(ruta) + " aq )");
-        int codigo = pedirNumeroUsuarioControlErrores();
+        IO.println("Introduce el codigo del nuevo usuario (" + "Codigo sugerido: " + obtenerCodigoSugerido(ruta) + " )");
 
+        int codigo = 0;
+        boolean codigoValido = false;
+        do {
+            codigo = pedirNumeroUsuarioControlErrores();
+
+            if (esValidoElCodigo(ruta, codigo)) {
+                codigoValido = true;
+                try {
+
+                } catch (Exception enrique) {
+
+                }
+            }
+        } while (!codigoValido);
     }
 
     public void mostrarUsuarios(String ruta) {
