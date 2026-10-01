@@ -1,6 +1,5 @@
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
+import javax.swing.*;
+import java.io.*;
 import java.util.ArrayList;
 
 public class Main {
@@ -15,7 +14,7 @@ public class Main {
                         1. Añadir usuario
                         2. Mostrar usuarios introducidos
                         3. Generar fichero de concordancias
-                        5. Salir
+                        4. Salir
                         ====================================
                         Seleccione una opción:\s""");
 
@@ -24,7 +23,7 @@ public class Main {
                     case 1 -> anadirUsuario(ruta);
                     case 2 -> mostrarUsuarios(ruta);
                     case 3 -> generarConcordancias(ruta);
-                    case 5 -> salir = true;
+                    case 4 -> salir = true;
                     default -> IO.println("Opcion no valida");
                 }
             } while (!salir);
@@ -52,8 +51,8 @@ public class Main {
 
     public boolean hayHuecosEnLaListaDeCodigos(ArrayList<Integer> listaCodigos) {
         boolean huecos = false;
-        for (int i = 0; i < listaCodigos.size(); i++) {
-            if (listaCodigos.get(i) + 1 != listaCodigos.get(i + 1)) { //verificar que siguen un orden 100,101,102,103,...
+        for (int i = 1; i < listaCodigos.size(); i++) {
+            if (listaCodigos.get(i) != listaCodigos.get(i - 1) + 1) { //verificar que siguen un orden 100,101,102,103,...
                 huecos = true;
                 return huecos;
             }
@@ -66,7 +65,7 @@ public class Main {
         try(BufferedReader br = new BufferedReader(new FileReader(ruta))) {
             String linea = "";
             while ((linea = br.readLine()) != null) {
-                int numeroCodigo = Integer.parseInt(linea.substring(1,2)); //sacar numeral del codigo
+                int numeroCodigo = Integer.parseInt(linea.substring(1,4)); //sacar numeral del codigo
                 listaCodigos.add(numeroCodigo);
             }
         } catch(Exception enrique) {
@@ -78,31 +77,50 @@ public class Main {
     int obtenerCodigoSugerido(String ruta) {
         ArrayList<Integer> listaCodigos = obtenerListaCodigos(ruta);
         if (!hayHuecosEnLaListaDeCodigos(listaCodigos)) {
-            return listaCodigos.getLast();
+            return listaCodigos.getLast() + 1; //ya que el ultimo ya esta pillado entocnes el + 1 que esta libre
         } else {
             int codigoHuecoDisponible = 0;
-            for (int i = 0; i < listaCodigos.size(); i++) {
-                if (listaCodigos.get(i) + 1 != listaCodigos.get(i + 1)) {
-                    codigoHuecoDisponible = listaCodigos.get(i + 1);
+            for (int i = 1; i < listaCodigos.size() + 1; i++) {
+                if (listaCodigos.get(i) != listaCodigos.get(i - 1) + 1) {
+                    codigoHuecoDisponible = listaCodigos.get(i - 1);
                 }
             }
             return codigoHuecoDisponible;
         }
     }
 
-    public boolean esValidoElCodigo(String ruta, int codigo) {
+    public boolean esValidoElCodigo(String ruta, int codigoAComprobar) {
         ArrayList<Integer> listaCodigos = obtenerListaCodigos(ruta);
 
-        for (int i = 0; i < listaCodigos.size(); i++) {
-            if (listaCodigos.get(i) == codigo) {
+        for (Integer codigoDeLista : listaCodigos) {
+            if (codigoDeLista == codigoAComprobar) {
                 return false;
             }
         }
         return true;
     }
 
+    public String[] eliminarAficionesRepetidas(String[] aficiones) {
+        ArrayList<String> unicas = new ArrayList<>();
+        for (String aficion : aficiones) {
+            boolean esUnica = true;
+            for (String aficionUnica : unicas) {
+                if (aficion.equals(aficionUnica)) {
+                    esUnica = false;
+                    break; //salir antes si se sabe que no es unica
+                }
+            }
+
+            if (esUnica) {
+                unicas.add(aficion);
+            }
+        }
+
+        return unicas.toArray(new String[0]);
+    }
+
     public void anadirUsuario(String ruta) {
-        IO.println("Introduce el codigo del nuevo usuario (" + "Codigo sugerido: " + obtenerCodigoSugerido(ruta) + " )");
+        IO.println("Introduce el codigo del nuevo usuario (" + "Codigo sugerido: " + obtenerCodigoSugerido(ruta) + ")");
 
         int codigo = 0;
         boolean codigoValido = false;
@@ -111,11 +129,21 @@ public class Main {
 
             if (esValidoElCodigo(ruta, codigo)) {
                 codigoValido = true;
-                try {
+                String[] aficiones = IO.readln("Introduce ahora las aficiones del usuario: ").toUpperCase().split(" ");
+                aficiones = eliminarAficionesRepetidas(aficiones);
+                try (FileWriter fileWriter = new FileWriter(ruta, true)) {
+                    fileWriter.write("\n"); //el caracter de final de linea va primero
 
-                } catch (Exception enrique) {
+                    fileWriter.write("U" + codigo);
 
+                    for (String aficion : aficiones) {
+                            fileWriter.write(" " + aficion);
+                    }
+                } catch (IOException enrique) {
+                    IO.println("ERROR: fallo al intentar escribir en el fichero");
                 }
+            } else {
+                IO.println("ERROR: Codigo no valido, por favor introduzca uno nuevo");
             }
         } while (!codigoValido);
     }
