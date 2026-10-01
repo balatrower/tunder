@@ -19,7 +19,7 @@ public class Main {
                         ====================================
                         Seleccione una opción:\s""");
 
-                    int opcion = Integer.parseInt(IO.readln());
+                    int opcion = pedirNumeroUsuarioControlErrores();
                     switch (opcion) {
                         case 1 -> anadirUsuario(ruta);
                         case 2 -> mostrarUsuarios(ruta);
